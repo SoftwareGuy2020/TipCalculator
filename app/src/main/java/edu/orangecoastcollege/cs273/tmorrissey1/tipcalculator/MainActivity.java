@@ -7,7 +7,6 @@ import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
 import java.text.NumberFormat;
 
 /**
@@ -24,8 +23,13 @@ public class MainActivity extends AppCompatActivity {
     private EditText amountEditText;
     private SeekBar percentSeekBar;
     private RestaurantBill currentBill = new RestaurantBill();
-    private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+    private static NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
+    private static NumberFormat percent = NumberFormat.getPercentInstance();
 
+    /**
+     * Perform initialization of all fragments and loaders.
+     * @param savedInstanceState Last saved instance state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,34 +43,14 @@ public class MainActivity extends AppCompatActivity {
         percentSeekBar = (SeekBar) findViewById(R.id.percentSeekBar);
 
         // Sets the percentage of the RestaurantBill if it is not set.
-        currentBill.setTipPercent((double) percentSeekBar.getProgress() / 100.0);
+        currentBill.setTipPercent(percentSeekBar.getProgress() / 100.0);
 
         amountEditText.addTextChangedListener(amountTextChangeListener);
-        percentSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                percentTextView.setText(Integer.toString(progress).concat("%"));
-                currentBill.setTipPercent((double) progress / 100.0 );
-                /*tipTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
-                        currencySymbol, currentBill.getTipAmount()));
-                totalTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
-                        currencySymbol, currentBill.getTotalAmount()));
-                        */
-                tipTextView.setText(currencyFormat.format(currentBill.getTipAmount()));
-                totalTextView.setText(currencyFormat.format(currentBill.getTotalAmount()));
-            }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Do nothing
-            }
+        percentSeekBar.setOnSeekBarChangeListener(percentChangeListener);
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Do nothing
-            }
-        });
+
     }
 
     private final TextWatcher amountTextChangeListener = new TextWatcher() {
@@ -80,14 +64,13 @@ public class MainActivity extends AppCompatActivity {
 
             try {
 
-                double amount = charSequence.length() > 0 ?
-                        Double.parseDouble(charSequence.toString()) : 0.0;
+                double amount = charSequence.length() > 0
+                        ? Double.parseDouble(charSequence.toString()) : 0.0;
                 amount /= 100.0;
 
                 currentBill.setAmount(amount);
                 amountTextView.setText(currencyFormat.format(currentBill.getAmount()));
-                tipTextView.setText(currencyFormat.format(currentBill.getTipAmount()));
-                totalTextView.setText(currencyFormat.format(currentBill.getTotalAmount()));
+                updateViews();
 
             } catch (NumberFormatException ex) {
                 amountEditText.setText("");
@@ -99,4 +82,44 @@ public class MainActivity extends AppCompatActivity {
             // do nothing
         }
     };
+
+    /**
+     * Anonymous class for tip percentage seek bar change event
+     */
+    private SeekBar.OnSeekBarChangeListener percentChangeListener = new SeekBar.OnSeekBarChangeListener(){
+        /**
+         * Updates RestaurantBill tip percentage and displays the changes to the GUI.
+         * Called when tip percentage seek bar progress is changed.
+         *
+         * @param seekBar The tip percentage seek bar
+         * @param progress The current progress value
+         * @param fromUser Whether the input is from the user or not
+         */
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            currentBill.setTipPercent(progress / 100.0 );
+            percentTextView.setText(percent.format(currentBill.getTipPercent()));
+
+            updateViews();
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            // Do nothing
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            // Do nothing
+        }
+    };
+
+
+    /**
+     * Updates the tip TextView and total TextView text output
+     */
+    private void updateViews() {
+        tipTextView.setText(currencyFormat.format(currentBill.getTipAmount()));
+        totalTextView.setText(currencyFormat.format(currentBill.getTotalAmount()));
+    }
 }
