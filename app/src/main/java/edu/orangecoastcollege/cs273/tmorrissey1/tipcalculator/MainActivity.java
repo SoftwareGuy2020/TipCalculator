@@ -8,8 +8,7 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.util.Currency;
-import java.util.Locale;
+import java.text.NumberFormat;
 
 /**
  * Controller for Tip Calculator.
@@ -24,9 +23,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView totalTextView;
     private EditText amountEditText;
     private SeekBar percentSeekBar;
-    private String currencySymbol = Currency.getInstance(Locale.getDefault()).getSymbol();
     private RestaurantBill currentBill = new RestaurantBill();
-
+    private NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,10 +48,13 @@ public class MainActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 percentTextView.setText(Integer.toString(progress).concat("%"));
                 currentBill.setTipPercent((double) progress / 100.0 );
-                tipTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
+                /*tipTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
                         currencySymbol, currentBill.getTipAmount()));
                 totalTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
                         currencySymbol, currentBill.getTotalAmount()));
+                        */
+                tipTextView.setText(currencyFormat.format(currentBill.getTipAmount()));
+                totalTextView.setText(currencyFormat.format(currentBill.getTotalAmount()));
             }
 
             @Override
@@ -79,20 +80,14 @@ public class MainActivity extends AppCompatActivity {
 
             try {
 
-
                 double amount = charSequence.length() > 0 ?
                         Double.parseDouble(charSequence.toString()) : 0.0;
                 amount /= 100.0;
 
                 currentBill.setAmount(amount);
-                amountTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
-                       currencySymbol, currentBill.getAmount()));
-
-                tipTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
-                        currencySymbol, currentBill.getTipAmount()));
-                totalTextView.setText(String.format(Locale.getDefault(), "%s%.2f",
-                        currencySymbol, currentBill.getTotalAmount()));
-
+                amountTextView.setText(currencyFormat.format(currentBill.getAmount()));
+                tipTextView.setText(currencyFormat.format(currentBill.getTipAmount()));
+                totalTextView.setText(currencyFormat.format(currentBill.getTotalAmount()));
 
             } catch (NumberFormatException ex) {
                 amountEditText.setText("");
